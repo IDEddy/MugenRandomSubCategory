@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUGEN Randomizer & Number Generator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean, modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Dark background */
+        }
+        /* Custom glow styles for buttons */
+        .glow-button-green {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.5); /* Soft cyan glow */
+        }
+        .glow-button-green:hover {
+            box-shadow: 0 0 25px rgba(100, 255, 218, 0.8), 0 0 5px rgba(100, 255, 218, 0.5);
+            transform: translateY(-2px);
+        }
+        .glow-button-blue {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); /* Soft blue glow */
+        }
+        .glow-button-blue:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.8), 0 0 5px rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+        .result-card {
+            background-color: #161b22; /* Slightly lighter dark card background */
+            transition: transform 0.3s ease;
+        }
+        /* Specific styling for the choice buttons/links */
+        .choice-link {
+            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            text-align: left;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #21262d; /* Default background */
+            border: 1px solid #444c56; /* Default border color */
+            text-decoration: none; /* No underline */
+            color: #e5e7eb; /* Gray-200 */
+            cursor: pointer;
+        }
+        .choice-link:hover {
+            background-color: #2c3541; /* Slightly lighter hover */
+            transform: translateY(-1px);
+            border-color: #64ffda;
+            box-shadow: 0 0 10px rgba(100, 255, 218, 0.2);
+        }
+    </style>
+</head>
+<!-- Centering the content using flex utilities on body -->
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Container: Changed from max-w-4xl to max-w-6xl to widen the columns -->
+    <div class="w-full max-w-6xl bg-[#21262d] p-8 rounded-xl shadow-2xl text-white border border-gray-700 mx-auto">
+        
+        <h1 class="text-4xl font-black text-center mb-8 text-[#64ffda] tracking-wide col-span-full">
+            M.U.G.E.N Tools
+        </h1>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            
+            <!-- Panel 1: MUGEN Category Randomizer -->
+            <div id="mugenPanel" class="p-6 rounded-lg border border-gray-700 bg-[#161b22]">
+                <h2 class="text-2xl font-black text-center mb-6 text-[#64ffda]">
+                    M.U.G.E.N 8-Choice Randomizer
+                </h2>
+                <p class="text-center text-gray-400 mb-6 text-sm">
+                    Generate 8 random categories. **Click any button below** to instantly open that category page.
+                </p>
+
+                <button id="randomizeButton" class="w-full py-4 text-lg font-bold bg-[#64ffda] text-[#0d1117] rounded-lg glow-button-green focus:outline-none focus:ring-4 focus:ring-[#64ffda] focus:ring-opacity-50 mb-6">
+                    Generate 8 New Choices
+                </button>
+
+                <!-- 8 Choices Display Grid -->
+                <div id="choiceButtonsContainer" class="grid grid-cols-2 gap-3 mb-6">
+                    <!-- Buttons will be injected here by JavaScript -->
+                </div>
+
+                <div id="loadingIndicator" class="hidden text-center text-[#64ffda] font-semibold mb-6">
+                    Shuffling categories...
+                </div>
+            </div>
+            
+            <!-- Panel 2: Range Number Generator -->
+            <div id="numberPanel" class="p-6 rounded-lg border border-gray-700 bg-[#161b22] h-full">
+                <h2 class="text-2xl font-black text-center mb-6 text-blue-500">
+                    Range Number Generator
+                </h2>
+                <p class="text-center text-gray-400 mb-6 text-sm">
+                    Get a random integer within a custom minimum and maximum range.
+                </p>
+
+                <!-- Inputs -->
+                <div class="flex space-x-4 mb-6">
+                    <input type="number" id="minInput" placeholder="Min (e.g., 1)" class="w-1/2 p-3 rounded-lg bg-[#0d1117] text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value="1">
+                    <input type="number" id="maxInput" placeholder="Max (e.g., 100)" class="w-1/2 p-3 rounded-lg bg-[#0d1117] text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value="100">
+                </div>
+
+                <button id="generateNumberButton" class="w-full py-4 text-lg font-bold bg-blue-600 text-white rounded-lg glow-button-blue focus:outline-none focus:ring-4 focus:ring-blue-600 focus:ring-opacity-50 hover:bg-blue-700">
+                    Generate Random Number
+                </button>
+
+                <div id="numberResultArea" class="mt-8 hidden">
+                    <div class="result-card p-6 rounded-lg border-l-4 border-blue-500 shadow-lg text-center">
+                        <p class="text-sm text-gray-400 mb-2 uppercase">Your Random Number</p>
+                        <h3 id="generatedNumberDisplay" class="text-4xl font-extrabold text-blue-500"></h3>
+                        <p id="numberRangeDisplay" class="text-sm text-gray-400 mt-2"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End of Grid -->
+        
+    </div>
+
+    <script>
+        // --- MUGEN CATEGORY DATA ---
+        
+        // Helper function to create a URL-friendly slug from text
+        function createSlug(text) {
+            return text
+                .toLowerCase()
+                .replace(/[\uD800-\uDBFF\uDC00-\uDFFF\u2600-\u27BF\uE000-\uF8FF]/g, '') // Remove emojis
+                .trim()
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/[\/,\.]/g, '') // Remove slashes, commas, and dots
+                .replace(/[^\w\-]+/g, '') // Remove all non-word chars except hyphens
+                .replace(/\-\-+/g, '-') // Replace multiple hyphens with single hyphen
+                .replace(/^-+/, '') // Trim hyphens from start
+                .replace(/-+$/, ''); // Trim hyphens from end
+        }
+
+        // Data structure containing all main categories and their sub-categories.
+        const mugenCategories = {
+            "Capcom": [
+                { name: "Cadillacs and Dinosaurs", id: 379 }, 
+                { name: "Capcom vs SNK ??", id: 2 }, 
+                { name: "Cyberbots", id: 225 }, 
+                { name: "Darkstalkers / Vampire", id: 29 }, 
+                { name: "Devil May Cry", id: 423 }, 
+                { name: "Final Fight", id: 349 }, 
+                { name: "Heroic Fantasy (Capcom)", id: 102 }, 
+                { name: "Marvel vs Capcom", id: 27 }, 
+                { name: "Mega Man", id: 166 }, 
+                { name: "Pocket Fighter", id: 30 }, 
+                { name: "Red Earth", id: 23 }, 
+                { name: "Resident Evil", id: 182 }, 
+                { name: "Rival Schools", id: 331 }, 
+                { name: "Slam Masters", id: 278 }, 
+                { name: "Street Fighter", id: 77 }, 
+                { name: "Street Fighter II", id: 18 }, 
+                { name: "Street Fighter Alpha", id: 19 }, 
+                { name: "Street Fighter III", id: 20 }, 
+                { name: "Street Fighter IV ?", id: 126 }, 
+                { name: "Street Fighter V", id: 443 }, 
+                { name: "Street Fighter EX", id: 255 }, 
+                { name: "Street Fighter X Tekken ?", id: 232 }, 
+                { name: "Street Fighter The Movie", id: 285 }, 
+                { name: "Strider Hiryu", id: 404 }, 
+                { name: "Super SF2 Turbo HD Remix ?", id: 115 }, 
+                { name: "Tatsunoko vs. Capcom", id: 256 }
+            ],
+            "SNK": [
+                { name: "3 Count Bout", id: 283 }, { name: "Aggressors of Dark Kombat", id: 356 }, { name: "Art of Fighting", id: 137 }, { name: "Breakers", id: 265 }, 
+                { name: "Fatal Fury", id: 93 }, { name: "Fight Fever", id: 262 }, { name: "Galaxy Fight", id: 155 }, { name: "Garou: Mark of the Wolves", id: 24 }, 
+                { name: "Kabuki Klash", id: 264 }, { name: "King of Fighters (Neo Geo)", id: 7 }, { name: "King of Fighters XI ??", id: 26 }, { name: "King of Fighters XII-XIII ?", id: 140 }, 
+                { name: "King of Fighters XIV ?", id: 545 }, { name: "King of Fighters EX", id: 105 }, { name: "KOF: Maximum Impact", id: 85 }, { name: "KOF 2002: Unlimited Match ??", id: 81 }, 
+                { name: "King of the Monsters", id: 566 }, { name: "Last Blade", id: 87 }, { name: "Metal Slug", id: 341 }, { name: "Ninja Master's", id: 360 }, 
+                { name: "Neo Geo Battle Coliseum", id: 25 }, { name: "Rage of the Dragons", id: 11 }, { name: "Samurai Shodown", id: 89 }, { name: "Savage Reign", id: 144 }, 
+                { name: "Sengoku", id: 477 }, { name: "SNK Pocket", id: 358 }, { name: "SNK vs. Capcom: SVC Chaos", id: 14 }, { name: "Voltage Fighter Gowcaizer", id: 263 }, 
+                { name: "Waku Waku 7", id: 154 }, { name: "World Heroes", id: 135 }
+            ],
+            "Heroes (Manga, Comics, TV)": [
+                { name: "A Certain Magical Index", id: 247 }, { name: "Aquapazza ?", id: 549 }, { name: "Bleach", id: 129 }, { name: "Cartoon", id: 415 }, 
+                { name: "Celebs", id: 313 }, { name: "Creepypasta", id: 405 }, { name: "DC comics", id: 214 }, { name: "Dengeki Bunko Fighting Climax ?", id: 286 }, 
+                { name: "Digimon", id: 271 }, { name: "Disney", id: 299 }, { name: "Dragon Ball Z", id: 70 }, { name: "Fairy Tail", id: 385 }, 
+                { name: "Fate/stay night", id: 124 }, { name: "Fist of the North Star ?", id: 15 }, { name: "InuYasha", id: 198 }, { name: "JoJo's Bizarre Adventure", id: 143 }, 
+                { name: "Jump Pocket", id: 363 }, { name: "Kantai Collection", id: 366 }, { name: "Kinnikuman", id: 401 }, { name: "Magical girl", id: 327 }, 
+                { name: "Marvel comics", id: 213 }, { name: "Mecha", id: 370 }, { name: "Melty Blood", id: 21 }, { name: "Movies & Series", id: 310 }, 
+                { name: "My Little Pony", id: 307 }, { name: "Naruto", id: 10 }, { name: "Nijikaku", id: 476 }, { name: "Nitro Royale", id: 233 }, 
+                { name: "One Piece", id: 192 }, { name: "Ougon Musou Kyoku ?", id: 230 }, { name: "Ranma ½", id: 308 }, { name: "Reborn!", id: 367 }, 
+                { name: "Rurouni Kenshin", id: 141 }, { name: "Saint Seiya", id: 103 }, { name: "Scott Pilgrim", id: 69 }, { name: "Sengoku Basara X ?", id: 43 }, 
+                { name: "Shin Koihime Musou ?", id: 269 }, { name: "TMNT", id: 186 }, { name: "Tokusatsu", id: 306 }, { name: "Transformers", id: 209 }, 
+                { name: "Visual Novels", id: 276 }, { name: "Vocaloids", id: 523 }, { name: "WWE", id: 296 }, { name: "Yu-Gi-Oh!", id: 49 }, 
+                { name: "Yu Yu Hakusho", id: 128 }, { name: "Zatch Bell!", id: 335 }
+            ],
+            "Other Fighters": [
+                { name: "Akatsuki Blitzkampf", id: 114 }, { name: "Alien Challenge", id: 201 }, { name: "Asura Blade", id: 152 }, { name: "Battle K-Road", id: 279 }, 
+                { name: "Battle Monsters", id: 204 }, { name: "Big Bang Beat", id: 28 }, { name: "Blandia", id: 386 }, { name: "Blade Strangers ?", id: 558 }, 
+                { name: "BlazBlue ?", id: 132 }, { name: "BloodStorm", id: 320 }, { name: "Brutal", id: 547 }, { name: "Capoeira Fighter ?", id: 319 }, 
+                { name: "Clay Fighter", id: 281 }, { name: "Daemon Bride ?", id: 244 }, { name: "Dark Awake", id: 288 }, { name: "Denjin Makai", id: 357 }, 
+                { name: "Dong Dong Never Die", id: 284 }, { name: "Double Dragon", id: 330 }, { name: "Dungeon Fighter", id: 305 }, { name: "Eternal Champions", id: 350 }, 
+                { name: "Eye of Typhoon", id: 563 }, { name: "Fallen Angels", id: 243 }, { name: "Fight 'N' Jokes", id: 317 }, { name: "Fightin' Spirit", id: 562 }, 
+                { name: "Fighting Masters", id: 344 }, { name: "Fighter's History", id: 142 }, { name: "Guardian Heroes", id: 325 }, { name: "Hiryu no Ken", id: 148 }, 
+                { name: "Guilty Gear ?", id: 22 }, { name: "Jaleco", id: 527 }, { name: "Joy Mech Fight", id: 326 }, { name: "Kaiser Knuckle", id: 200 }, 
+                { name: "Kakuge Yaro", id: 300 }, { name: "Kasumi Ninja", id: 374 }, { name: "Killer Instinct", id: 106 }, { name: "Kunio-kun (River City)", id: 565 }, 
+                { name: "Little Fighter 2", id: 402 }, { name: "Martial Champion", id: 403 }, { name: "Martial Masters", id: 290 }, { name: "Million Arthur Arcana Blood ?", id: 559 }, 
+                { name: "Million Knights Vermilion ?", id: 44 }, { name: "Mortal Kombat", id: 108 }, { name: "Namco X Capcom", id: 72 }, { name: "Oriental Legend", id: 576 }, 
+                { name: "Pit-Fighter", id: 291 }, { name: "Persona 4 Arena ?", id: 194 }, { name: "Power Instinct", id: 75 }, { name: "Primal Rage", id: 297 }, 
+                { name: "Rabbit", id: 199 }, { name: "Sango Fighter", id: 546 }, { name: "SoulCalibur", id: 178 }, { name: "Spectral vs Generation", id: 228 }, 
+                { name: "Tattoo Assassins", id: 280 }, { name: "Tekken", id: 177 }, { name: "Tough Guy", id: 555 }, { name: "Under Night In-Birth ?", id: 318 }, 
+                { name: "Yatagarasu", id: 289 }, { name: "Z. Unknown and Misc. Games", id: 111 }
+            ],
+            "Bishojo Fighters": [
+                { name: "Arcana Heart ?", id: 119 }, { name: "Asuka 120%", id: 302 }, { name: "Catfight", id: 151 }, { name: "Eternal Fighter Zero", id: 227 }, 
+                { name: "Fuuka Taisen", id: 275 }, { name: "Magical Chaser", id: 343 }, { name: "Queen of Duellist", id: 362 }, { name: "Queen of Heart", id: 328 }, 
+                { name: "Seifuku Densetsu Pretty Fighter", id: 426 }, { name: "Skullgirls ?", id: 223 }, { name: "Touhou Project", id: 112 }, { name: "Toukidenshou Angel Eyes", id: 153 }, 
+                { name: "Valkyrie The Power Beauties", id: 337 }, { name: "Vanguard Princess ?", id: 235 }, { name: "Variable Geo", id: 294 }, { name: "Wonderful World", id: 277 }
+            ],
+            "Video Game Universe": [
+                { name: "Angry Birds", id: 212 }, { name: "Bandai Namco", id: 257 }, { name: "Blizzard", id: 347 }, { name: "Bootleg", id: 372 }, 
+                { name: "Cuphead", id: 521 }, { name: "Eternity Sword", id: 397 }, { name: "Five Nights At Freddy's", id: 509 }, { name: "I Wanna Be The Guy", id: 342 }, 
+                { name: "Konami", id: 346 }, { name: "MapleStory", id: 236 }, { name: "Megami Tensei", id: 195 }, { name: "Might and Magic", id: 510 }, 
+                { name: "Minecraft", id: 569 }, { name: "Newgrounds", id: 52 }, { name: "Nintendo", id: 211 }, { name: "Nippon Ichi", id: 399 }, 
+                { name: "Plants vs Zombies", id: 570 }, { name: "Ragnarok", id: 475 }, { name: "Roblox", id: 516 }, { name: "Sega", id: 511 }, 
+                { name: "Square Enix", id: 339 }, { name: "Undertale", id: 395 }
+            ],
+            "Originals": [
+                { name: "Amateur and Child Art", id: 254 }, { name: "Digitized", id: 371 }
+            ],
+            "Edits": [
+                { name: "Capcom Arrange", id: 100 }, { name: "SNK Arrange", id: 101 }, { name: "Joke edits", id: 373 }, { name: "Fast Food Madness", id: 454 }, 
+                { name: "Pocket edits", id: 316 }, { name: "Kung Fu Man edits", id: 301 }, { name: "Smash Mod ??", id: 538 }, { name: "Null edits ??", id: 536 }, 
+                { name: "The Blender ??", id: 564 }, { name: "18+ edits", id: 324 }
+            ]
+        };
+
+        // Flatten the data into a single array of objects for easy randomization
+        let allSubCategories = [];
+        for (const mainCat in mugenCategories) {
+            mugenCategories[mainCat].forEach(subCat => {
+                allSubCategories.push({
+                    main: mainCat,
+                    sub: subCat.name,
+                    id: subCat.id // Include the ID
+                });
+            });
+        }
+
+        // --- MUGEN RANDOMIZER LOGIC ---
+
+        const NUM_CHOICES = 8;
+        const mugenLoadingIndicator = document.getElementById('loadingIndicator');
+        const mugenRandomizeButton = document.getElementById('randomizeButton');
+        const choiceContainer = document.getElementById('choiceButtonsContainer');
+
+        let currentChoices = []; // Store the 8 unique choices
+
+        // Function to create a button element (now an <a> tag)
+        function createChoiceButton(index, choice) {
+            // Construct the URL immediately
+            const baseUrl = "https://mugenarchive.com/forums/downloads.php";
+            const cleanSubName = choice.sub.replace(/[\uD800-\uDBFF\uDC00-\uDFFF\u2600-\u27BF\uE000-\uF8FF]/g, '').trim(); 
+            const slug = createSlug(cleanSubName);
+            const url = `${baseUrl}?do=cat&id=${choice.id}-${slug}`;
+
+            // Create an anchor tag instead of a button
+            const link = document.createElement('a');
+            link.className = 'choice-link';
+            link.href = url;
+            link.target = "_blank"; // Open in new tab
+            
+            link.innerHTML = `
+                <span class="text-sm text-[#64ffda] font-bold mr-2">${index + 1}.</span>
+                <span class="flex-grow text-center text-sm sm:text-base">${choice.sub}</span>
+                <span class="text-xs text-gray-500 ml-2">(${choice.main})</span>
+            `;
+            
+            return link;
+        }
+
+        // Function to generate the 8 new choices
+        function generateNewChoices() {
+            // Reset UI
+            choiceContainer.innerHTML = '';
+            mugenRandomizeButton.disabled = true;
+            mugenLoadingIndicator.classList.remove('hidden');
+
+            currentChoices = [];
+            const tempArray = [...allSubCategories]; // Copy the array to pick from
+
+            // Ensure we don't try to pick more choices than available categories
+            const limit = Math.min(NUM_CHOICES, allSubCategories.length);
+
+            // Logic to select 8 unique random choices
+            for (let i = 0; i < limit; i++) {
+                if (tempArray.length === 0) break; 
+                
+                const randomIndex = Math.floor(Math.random() * tempArray.length);
+                const choice = tempArray.splice(randomIndex, 1)[0]; // Pick and remove
+                currentChoices.push(choice);
+            }
+
+            // Simulate delay then display results
+            setTimeout(() => {
+                currentChoices.forEach((choice, index) => {
+                    choiceContainer.appendChild(createChoiceButton(index, choice));
+                });
+
+                mugenLoadingIndicator.classList.add('hidden');
+                mugenRandomizeButton.disabled = false;
+            }, 100); // 800ms delay
+        }
+        
+        // Attach event listener to the main generator button
+        mugenRandomizeButton.addEventListener('click', generateNewChoices);
+        
+        // Initialize the page by running the generator once
+        generateNewChoices();
+
+
+        // --- NUMBER GENERATOR LOGIC ---
+
+        const minInput = document.getElementById('minInput');
+        const maxInput = document.getElementById('maxInput');
+        const generateNumberButton = document.getElementById('generateNumberButton');
+        const numberResultArea = document.getElementById('numberResultArea');
+        const generatedNumberDisplay = document.getElementById('generatedNumberDisplay');
+        const numberRangeDisplay = document.getElementById('numberRangeDisplay');
+
+        function generateRandomNumber() {
+            numberResultArea.classList.add('hidden');
+
+            const min = parseInt(minInput.value, 10);
+            const max = parseInt(maxInput.value, 10);
+
+            // Validation (using custom message box logic instead of alert)
+            if (minInput.value === "" || maxInput.value === "" || isNaN(min) || isNaN(max) || min > max) {
+                
+                let message = "Please enter valid integers.";
+                if (minInput.value === "" || maxInput.value === "") {
+                    message = "Please fill in both Min and Max fields.";
+                } else if (min > max) {
+                    message = "Min value must be less than or equal to Max value.";
+                }
+
+                generatedNumberDisplay.textContent = "Error";
+                numberRangeDisplay.textContent = message;
+                generatedNumberDisplay.classList.remove('text-blue-500');
+                generatedNumberDisplay.classList.add('text-red-500');
+                numberResultArea.classList.remove('hidden');
+                return;
+            }
+
+            // Restore success styling
+            generatedNumberDisplay.classList.remove('text-red-500');
+            generatedNumberDisplay.classList.add('text-blue-500');
+            generateNumberButton.disabled = true;
+
+            setTimeout(() => {
+                // Calculation: Math.floor(Math.random() * (max - min + 1)) + min
+                const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+                generatedNumberDisplay.textContent = randomNumber;
+                numberRangeDisplay.textContent = `(Range: ${min} to ${max})`;
+                
+                numberResultArea.classList.remove('hidden');
+                generateNumberButton.disabled = false;
+            }, 500); 
+        }
+
+        generateNumberButton.addEventListener('click', generateRandomNumber);
+
+    </script>
+</body>
+</html>
