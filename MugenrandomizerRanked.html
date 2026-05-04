@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUGEN Hyper-Selector - Final Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0d1117; color: white; }
+        .glow-gold { border: 1px solid #ffd700 !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .glow-purple { border: 1px solid #a855f7 !important; }
+        .choice-link { transition: all 0.2s; background-color: #21262d; border: 1px solid #444c56; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: #e5e7eb; }
+        .choice-link:hover { transform: translateY(-2px); border-color: #64ffda; background-color: #2c3541; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl bg-[#21262d] p-8 rounded-xl shadow-2xl border border-gray-700 mx-auto">
+        <h1 class="text-4xl font-black text-center mb-2 text-[#64ffda] tracking-wide uppercase italic">M.U.G.E.N Hyper-Selector</h1>
+        <p class="text-center text-gray-400 mb-8 font-bold italic">Integrity Check: Verified Against Legacy File & New Folders</p>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="p-6 rounded-lg border border-gray-700 bg-[#161b22]">
+                <h2 class="text-2xl font-black text-center mb-6 text-[#64ffda]">8-Choice Randomizer</h2>
+                <button id="randomizeButton" class="w-full py-4 text-lg font-bold bg-[#64ffda] text-[#0d1117] rounded-lg mb-6 hover:opacity-90 uppercase">Generate New Batch</button>
+                <div id="choiceButtonsContainer" class="grid grid-cols-2 gap-3"></div>
+            </div>
+            
+            <div class="p-6 rounded-lg border border-gray-700 bg-[#161b22]">
+                <h2 class="text-2xl font-black text-center mb-6 text-blue-500">Manual Range</h2>
+                <div class="flex space-x-4 mb-6">
+                    <input type="number" id="minInput" class="w-1/2 p-3 rounded-lg bg-[#0d1117] border border-gray-600 text-white" value="1">
+                    <input type="number" id="maxInput" class="w-1/2 p-3 rounded-lg bg-[#0d1117] border border-gray-600 text-white" value="100">
+                </div>
+                <button id="generateNumBtn" class="w-full py-4 text-lg font-bold bg-blue-600 rounded-lg hover:bg-blue-700 uppercase">Roll Dice</button>
+                <div id="numResult" class="mt-8 hidden p-6 rounded-lg bg-[#0d1117] text-center border-l-4 border-blue-500">
+                    <h3 id="numDisplay" class="text-4xl font-extrabold text-blue-500"></h3>
+                </div>
+            </div>
+
+            <div class="col-span-full p-6 rounded-lg border border-gray-700 bg-[#0d1117]">
+                <h2 class="text-xl font-black mb-4 text-[#64ffda]">⚡ Flashiness Ranking (Top 8 of Batch)</h2>
+                <div id="rankingContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mugenCategories = {
+            "Capcom": [
+                { name: "MVC Arrange", id: 95, flash: 10 }, { name: "CvS Arrange", id: 315, flash: 10 }, { name: "CvS Pots Style", id: 41, flash: 9 },
+                { name: "Cadillacs and Dinosaurs", id: 379, flash: 4 }, { name: "Capcom vs SNK ??", id: 2, flash: 7 }, 
+                { name: "Cyberbots", id: 225, flash: 6 }, { name: "Darkstalkers / Vampire", id: 29, flash: 7 }, 
+                { name: "Devil May Cry", id: 423, flash: 6 }, { name: "Final Fight", id: 349, flash: 4 }, 
+                { name: "Heroic Fantasy (Capcom)", id: 102, flash: 5 }, { name: "Marvel vs Capcom", id: 27, flash: 8 }, 
+                { name: "Mega Man Classic", id: 166, flash: 5 }, { name: "Mega Man X", id: 406, flash: 7 }, { name: "Mega Man Zero ZX", id: 407, flash: 8 },
+                { name: "Pocket Fighter", id: 30, flash: 6 }, { name: "Red Earth", id: 23, flash: 7 }, 
+                { name: "Resident Evil", id: 182, flash: 4 }, { name: "Rival Schools", id: 331, flash: 6 }, 
+                { name: "Slam Masters", id: 278, flash: 4 }, { name: "Street Fighter", id: 77, flash: 3 }, 
+                { name: "Street Fighter II", id: 18, flash: 4 }, { name: "Street Fighter Alpha", id: 19, flash: 6 }, 
+                { name: "Street Fighter III", id: 20, flash: 7 }, { name: "Street Fighter IV ?", id: 126, flash: 7 }, 
+                { name: "Street Fighter V", id: 443, flash: 8 }, { name: "Street Fighter EX", id: 255, flash: 6 }, 
+                { name: "Street Fighter X Tekken ?", id: 232, flash: 7 }, { name: "Street Fighter The Movie", id: 285, flash: 3 }, 
+                { name: "Strider Hiryu", id: 404, flash: 6 }, { name: "Super SF2 Turbo HD Remix ?", id: 115, flash: 5 }, 
+                { name: "Tatsunoko vs. Capcom", id: 256, flash: 8 },
+				{ name: "Capcom vs The World", id: 253, flash: 9 },
+            ],
+            "SNK": [
+                { name: "SNK Arrange", id: 101, flash: 10 }, 
+                { name: "3 Count Bout", id: 283, flash: 3 }, { name: "Aggressors of Dark Kombat", id: 356, flash: 4 }, 
+                { name: "Art of Fighting", id: 137, flash: 4 }, { name: "Breakers", id: 265, flash: 5 }, 
+                { name: "Fatal Fury", id: 93, flash: 5 }, { name: "Fight Fever", id: 262, flash: 3 }, 
+                { name: "Galaxy Fight", id: 155, flash: 6 }, { name: "Garou: Mark of the Wolves", id: 24, flash: 7 }, 
+                { name: "Kabuki Klash", id: 264, flash: 6 }, { name: "King of Fighters (Neo Geo)", id: 7, flash: 6 }, 
+                { name: "King of Fighters XI ??", id: 26, flash: 8 }, { name: "King of Fighters XII-XIII ?", id: 140, flash: 9 }, 
+                { name: "King of Fighters XIV ?", id: 545, flash: 9 }, { name: "King of Fighters EX", id: 105, flash: 5 }, 
+                { name: "KOF: Maximum Impact", id: 85, flash: 7 }, { name: "KOF 2002: Unlimited Match ??", id: 81, flash: 8 }, 
+                { name: "King of the Monsters", id: 566, flash: 3 }, { name: "Last Blade", id: 87, flash: 7 }, 
+                { name: "Metal Slug", id: 341, flash: 5 }, { name: "Ninja Master's", id: 360, flash: 6 }, 
+                { name: "Neo Geo Battle Coliseum", id: 25, flash: 7 }, { name: "Rage of the Dragons", id: 11, flash: 7 }, 
+                { name: "Samurai Shodown", id: 89, flash: 6 }, { name: "Savage Reign", id: 144, flash: 5 }, 
+                { name: "Sengoku", id: 477, flash: 4 }, { name: "SNK Pocket", id: 358, flash: 4 }, 
+                { name: "SNK vs. Capcom: SVC Chaos", id: 14, flash: 7 }, { name: "Voltage Fighter Gowcaizer", id: 263, flash: 6 }, 
+                { name: "Waku Waku 7", id: 154, flash: 7 }, { name: "World Heroes", id: 135, flash: 5 }, { name: "KOF Anthology", id: 410, flash: 8 },
+				{ name: "KOF Remix", id: 571, flash: 8 }, { name: "KOF Zillion", id: 231, flash: 9 },
+            ],
+            "Anime_Manga_Classic": [
+                { name: "A Certain Magical Index", id: 247, flash: 7 }, { name: "Aquapazza ?", id: 549, flash: 7 }, 
+                { name: "Bleach", id: 129, flash: 8 }, { name: "Digimon", id: 271, flash: 6 }, 
+                { name: "Dengeki Bunko Fighting Climax ?", id: 286, flash: 8 }, { name: "Dragon Ball Z", id: 70, flash: 8 }, 
+                { name: "Fairy Tail", id: 385, flash: 7 }, { name: "Fate/stay night", id: 124, flash: 9 }, 
+                { name: "Fist of the North Star ?", id: 15, flash: 8 }, { name: "InuYasha", id: 198, flash: 6 }, 
+                { name: "JoJo's Bizarre Adventure", id: 143, flash: 8 }, { name: "Jump Pocket", id: 363, flash: 5 }, 
+                { name: "Kinnikuman", id: 401, flash: 6 }, { name: "Naruto", id: 10, flash: 7 }, 
+                { name: "One Piece", id: 192, flash: 8 }, { name: "Ougon Musou Kyoku ?", id: 230, flash: 8 }, 
+                { name: "Ranma ½", id: 308, flash: 6 }, { name: "Reborn!", id: 367, flash: 6 }, 
+                { name: "Rurouni Kenshin", id: 141, flash: 7 }, { name: "Saint Seiya", id: 103, flash: 8 },
+                { name: "Sengoku Basara X ?", id: 43, flash: 8 }, { name: "Shin Koihime Musou ?", id: 269, flash: 7 }, 
+                { name: "Yu-Gi-Oh!", id: 49, flash: 7 }, { name: "Yu Yu Hakusho", id: 128, flash: 8 }, 
+                { name: "Zatch Bell!", id: 335, flash: 7 }
+            ],
+            "Other_Fighters": [
+                { name: "Akatsuki Blitzkampf", id: 114, flash: 8 }, { name: "Alien Challenge", id: 201, flash: 4 }, 
+                { name: "Asura Blade", id: 152, flash: 6 }, { name: "Battle K-Road", id: 279, flash: 3 }, 
+                { name: "Battle Monsters", id: 204, flash: 5 }, { name: "Big Bang Beat", id: 28, flash: 9 }, 
+                { name: "Blandia", id: 386, flash: 4 }, { name: "Blade Strangers ?", id: 558, flash: 8 }, 
+                { name: "BlazBlue ?", id: 132, flash: 9 }, { name: "BloodStorm", id: 320, flash: 5 }, 
+                { name: "Brutal", id: 547, flash: 4 }, { name: "Capoeira Fighter ?", id: 319, flash: 6 }, 
+                { name: "Clay Fighter", id: 281, flash: 4 }, { name: "Daemon Bride ?", id: 244, flash: 8 }, 
+                { name: "Dark Awake", id: 288, flash: 7 }, { name: "Denjin Makai", id: 357, flash: 5 }, 
+                { name: "Dong Dong Never Die", id: 284, flash: 7 }, { name: "Double Dragon", id: 330, flash: 5 }, 
+                { name: "Dungeon Fighter", id: 305, flash: 8 }, { name: "Eternal Champions", id: 350, flash: 5 }, 
+                { name: "Eye of Typhoon", id: 563, flash: 4 }, { name: "Fallen Angels", id: 243, flash: 6 }, 
+                { name: "Fight 'N' Jokes", id: 317, flash: 5 }, { name: "Fightin' Spirit", id: 562, flash: 4 }, 
+                { name: "Fighting Masters", id: 344, flash: 3 }, { name: "Fighter's History", id: 142, flash: 5 }, 
+                { name: "Guardian Heroes", id: 325, flash: 6 }, { name: "Hiryu no Ken", id: 148, flash: 5 }, 
+                { name: "Guilty Gear ?", id: 22, flash: 9 }, { name: "Jaleco", id: 527, flash: 4 }, 
+                { name: "Joy Mech Fight", id: 326, flash: 4 }, { name: "Kaiser Knuckle", id: 200, flash: 6 }, 
+                { name: "Kakuge Yaro", id: 300, flash: 5 }, { name: "Kasumi Ninja", id: 374, flash: 3 }, 
+                { name: "Killer Instinct", id: 106, flash: 7 }, { name: "Kunio-kun (River City)", id: 565, flash: 5 }, 
+                { name: "Little Fighter 2", id: 402, flash: 6 }, { name: "Martial Champion", id: 403, flash: 4 }, 
+                { name: "Martial Masters", id: 290, flash: 7 }, { name: "Million Arthur Arcana Blood ?", id: 559, flash: 8 }, 
+                { name: "Million Knights Vermilion ?", id: 44, flash: 8 }, { name: "Mortal Kombat", id: 108, flash: 4 }, 
+                { name: "Namco X Capcom", id: 72, flash: 7 }, { name: "Oriental Legend", id: 576, flash: 5 }, 
+                { name: "Pit-Fighter", id: 291, flash: 3 }, { name: "Persona 4 Arena ?", id: 194, flash: 9 }, 
+                { name: "Power Instinct", id: 75, flash: 7 }, { name: "Primal Rage", id: 297, flash: 4 }, 
+                { name: "Rabbit", id: 199, flash: 6 }, { name: "Sango Fighter", id: 546, flash: 4 }, 
+                { name: "SoulCalibur", id: 178, flash: 6 }, { name: "Spectral vs Generation", id: 228, flash: 6 }, 
+                { name: "Tattoo Assassins", id: 280, flash: 3 }, { name: "Tekken", id: 177, flash: 5 }, 
+                { name: "Tough Guy", id: 555, flash: 4 }, { name: "Under Night In-Birth ?", id: 318, flash: 9 }, 
+                { name: "Yatagarasu", id: 289, flash: 8 }, { name: "Z. Unknown and Misc. Games", id: 111, flash: 5 }
+            ],
+            "Video_Game_Universe": [
+                { name: "Angry Birds", id: 212, flash: 4 }, { name: "Bandai Namco", id: 257, flash: 6 }, 
+                { name: "Blizzard", id: 347, flash: 6 }, { name: "Bootleg", id: 372, flash: 4 }, 
+                { name: "Cuphead", id: 521, flash: 8 }, { name: "Eternity Sword", id: 397, flash: 6 }, 
+                { name: "Five Nights At Freddy's", id: 509, flash: 5 }, { name: "I Wanna Be The Guy", id: 342, flash: 6 }, 
+                { name: "Konami", id: 346, flash: 6 }, { name: "MapleStory", id: 236, flash: 6 }, 
+                { name: "Megami Tensei", id: 195, flash: 7 }, { name: "Might and Magic", id: 510, flash: 5 }, 
+                { name: "Minecraft", id: 569, flash: 5 }, { name: "Newgrounds", id: 52, flash: 6 }, 
+                { name: "Nintendo", id: 211, flash: 6 }, { name: "Nippon Ichi", id: 399, flash: 6 }, 
+                { name: "Plants vs Zombies", id: 570, flash: 5 }, { name: "Ragnarok", id: 475, flash: 6 }, 
+                { name: "Roblox", id: 516, flash: 5 }, { name: "Sega", id: 511, flash: 6 }, 
+                { name: "Square Enix", id: 339, flash: 7 }, { name: "Undertale", id: 395, flash: 7 }
+            ],
+            "Pop_Culture_Misc": [
+                { name: "Cartoon", id: 415, flash: 5 }, { name: "Celebs", id: 313, flash: 4 }, 
+                { name: "Creepypasta", id: 405, flash: 6 }, { name: "DC comics", id: 214, flash: 6 }, 
+                { name: "Disney", id: 299, flash: 5 }, { name: "Marvel comics", id: 213, flash: 7 }, 
+                { name: "Movies & Series", id: 310, flash: 5 }, { name: "My Little Pony", id: 307, flash: 4 }, 
+                { name: "Scott Pilgrim", id: 69, flash: 7 }, { name: "TMNT", id: 186, flash: 6 }, 
+                { name: "Transformers", id: 209, flash: 6 }, { name: "Vocaloids", id: 523, flash: 6 }, 
+                { name: "WWE", id: 296, flash: 4 }, { name: "Tokusatsu", id: 306, flash: 7 },
+                { name: "Mecha", id: 370, flash: 7 }, { name: "Magical girl", id: 327, flash: 7 },
+                { name: "Nijikaku", id: 476, flash: 7 }, { name: "Nitro Royale", id: 233, flash: 8 },
+                { name: "Visual Novels", id: 276, flash: 6 }
+            ],
+            "Bishojo_Fighters": [
+                { name: "Arcana Heart ?", id: 119, flash: 8 }, { name: "Asuka 120%", id: 302, flash: 6 }, 
+                { name: "Catfight", id: 151, flash: 3 }, { name: "Eternal Fighter Zero", id: 227, flash: 7 }, 
+                { name: "Fuuka Taisen", id: 275, flash: 7 }, { name: "Magical Chaser", id: 343, flash: 6 }, 
+                { name: "Queen of Duellist", id: 362, flash: 4 }, { name: "Queen of Heart", id: 328, flash: 6 }, 
+                { name: "Seifuku Densetsu Pretty Fighter", id: 426, flash: 4 }, { name: "Skullgirls ?", id: 223, flash: 9 }, 
+                { name: "Touhou Project", id: 112, flash: 10 }, { name: "Toukidenshou Angel Eyes", id: 153, flash: 6 }, 
+                { name: "Valkyrie The Power Beauties", id: 337, flash: 5 }, { name: "Vanguard Princess ?", id: 235, flash: 8 }, 
+                { name: "Variable Geo", id: 294, flash: 6 }, { name: "Wonderful World", id: 277, flash: 7 },
+                { name: "Melty Blood", id: 21, flash: 9 }
+            ],
+            "Edits_Originals": [
+                { name: "Capcom Arrange", id: 100, flash: 9 }, { name: "Shades of Manhattan", id: 252, flash: 7 },
+                { name: "Joke edits", id: 373, flash: 6 }, { name: "Fast Food Madness", id: 454, flash: 7 }, 
+                { name: "Pocket edits", id: 316, flash: 6 }, { name: "Kung Fu Man edits", id: 301, flash: 6 }, 
+                { name: "Smash Mod ??", id: 538, flash: 7 }, { name: "Null edits ??", id: 536, flash: 10 }, 
+                { name: "The Blender ??", id: 564, flash: 6 }, { name: "18+ edits", id: 324, flash: 4 },
+                { name: "Amateur and Child Art", id: 254, flash: 2 }, { name: "Digitized", id: 371, flash: 4 },
+				 { name: "Nerd vs The World", id: 42, flash: 7 }, { name: "Card Sagas Wars", id: 542, flash: 10 },
+            ]
+        };
+
+        const weightedPool = [];
+        Object.keys(mugenCategories).forEach(cat => {
+            mugenCategories[cat].forEach(sub => {
+                const flash = sub.flash || 5;
+                for (let i = 0; i < flash; i++) {
+                    weightedPool.push({ ...sub, main: cat, flash });
+                }
+            });
+        });
+
+        function createUrl(item) {
+            const slug = item.name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+            return `https://mugenarchive.com/forums/downloads.php?do=cat&id=${item.id}-${slug}`;
+        }
+
+        function getStyles(f) {
+            if (f >= 9) return { border: 'glow-gold', text: 'text-yellow-400', label: 'ULTRA' };
+            if (f >= 7) return { border: 'glow-purple', text: 'text-purple-400', label: 'HIGH' };
+            return { border: 'border-gray-600', text: 'text-blue-400', label: 'MID' };
+        }
+
+        function generate() {
+            const choiceContainer = document.getElementById('choiceButtonsContainer');
+            const rankingContainer = document.getElementById('rankingContainer');
+            choiceContainer.innerHTML = ''; rankingContainer.innerHTML = '';
+            
+            let picks = []; let seen = new Set();
+            while (picks.length < 8) {
+                const p = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+                if (!seen.has(p.name)) { picks.push(p); seen.add(p.name); }
+            }
+
+            picks.forEach((p, i) => {
+                const s = getStyles(p.flash);
+                const a = document.createElement('a');
+                a.className = `choice-link p-3 rounded ${s.border}`;
+                a.href = createUrl(p); a.target = "_blank";
+                a.innerHTML = `<span class="text-xs font-black ${s.text}">${i+1}</span><span class="text-[9px] sm:text-[10px] font-bold text-center flex-grow uppercase leading-tight px-1">${p.name}</span>`;
+                choiceContainer.appendChild(a);
+            });
+
+            [...picks].sort((a,b) => b.flash - a.flash).forEach(p => {
+                const s = getStyles(p.flash);
+                const a = document.createElement('a');
+                a.className = `rank-link bg-[#161b22] p-3 rounded border ${s.border} flex justify-between items-center text-xs`;
+                a.href = createUrl(p); a.target = "_blank";
+                a.innerHTML = `<div><span class="block text-[10px] font-black ${s.text}">${s.label}</span><span class="uppercase">${p.name}</span></div><span class="text-gray-500">${p.flash}/10</span>`;
+                rankingContainer.appendChild(a);
+            });
+        }
+
+        document.getElementById('randomizeButton').addEventListener('click', generate);
+        document.getElementById('generateNumBtn').addEventListener('click', () => {
+            const min = parseInt(document.getElementById('minInput').value) || 1;
+            const max = parseInt(document.getElementById('maxInput').value) || 100;
+            if (min <= max) {
+                document.getElementById('numDisplay').textContent = Math.floor(Math.random() * (max - min + 1)) + min;
+                document.getElementById('numResult').classList.remove('hidden');
+            }
+        });
+        generate();
+    </script>
+</body>
+</html>
